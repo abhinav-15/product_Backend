@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .product-card {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Product Management</h1>
+
+    <div id="products-container"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        fetchProducts();
+
+        function fetchProducts() {
+            fetch('http://localhost:8070/api/products')
+                .then(response => response.json())
+                .then(products => displayProducts(products))
+                .catch(error => console.error('Error fetching products:', error));
+        }
+
+        function displayProducts(products) {
+            const productsContainer = document.getElementById('products-container');
+            productsContainer.innerHTML = '';
+
+            products.forEach(product => {
+                const productCard = createProductCard(product);
+                productsContainer.appendChild(productCard);
+            });
+        }
+
+        function createProductCard(product) {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+
+            const image = document.createElement('img');
+            image.src = product.image;
+            image.alt = product.name;
+            image.style.width = '100%';
+            productCard.appendChild(image);
+
+            const name = document.createElement('h3');
+            name.textContent = product.name;
+            productCard.appendChild(name);
+
+            const category = document.createElement('p');
+            category.textContent = `Category: ${product.category}`;
+            productCard.appendChild(category);
+
+            const price = document.createElement('p');
+            price.textContent = `Price: $${product.price.toFixed(2)}`;
+            productCard.appendChild(price);
+
+            const description = document.createElement('p');
+            description.textContent = product.description;
+            productCard.appendChild(description);
+
+            const updatePriceButton = document.createElement('button');
+            updatePriceButton.textContent = 'Update Price';
+            updatePriceButton.addEventListener('click', function () {
+                const newPrice = prompt('Enter the new price:');
+                if (newPrice !== null && !isNaN(newPrice)) {
+                    updateProductPrice(product.id, parseFloat(newPrice));
+                }
+            });
+            productCard.appendChild(updatePriceButton);
+
+            return productCard;
+        }
+
+        function updateProductPrice(productId, newPrice) {
+            fetch(`http://localhost:8070/api/products/${productId}/update-price?newPrice=${newPrice}`, {
+                method: 'PUT'
+            })
+            .then(response => response.json())
+            .then(updatedProduct => {
+                alert(`Price updated successfully! New price: $${updatedProduct.price.toFixed(2)}`);
+                fetchProducts(); // Refresh the product list after updating
+            })
+            .catch(error => console.error('Error updating product price:', error));
+        }
+    });
+    </script>
+</body>
+</html>
